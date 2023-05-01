@@ -21,6 +21,7 @@
     "react-dom": "^18.2.0",
     "styled-components": "^5.3.7",
     "three": "^0.150.1",
+    "use-cannon": "^0.5.3",
     "zustand": "^4.3.5"
   },
   "devDependencies": {
