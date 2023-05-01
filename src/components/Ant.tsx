@@ -1,24 +1,35 @@
 import { Point } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { Mesh } from "three";
+import { useSceneStore } from "../store/useSceneStore";
 
-export function Ant({
-  position,
-  gridSize,
-  antSpeed,
-  pheromoneTrail,
-  foodSource,
-}) {
+export function Ant({ position, gridSize }) {
+  const foodSource = useSceneStore((state) => state.foodSource);
+  const setNewToFoodTrail = useSceneStore((state) => state.setNewToFoodTrail);
+  const setNewToNestTrail = useSceneStore((state) => state.setNewToNestTrail);
+
   const isCarringFood = useRef<boolean>(false);
   const pointRef = useRef<Mesh>();
   const angleRef = useRef(Math.random() * 360);
+  useEffect(()=>{
+    setInterval(()=>{
+      const position = pointRef.current?.position;
+      if(isCarringFood.current){
+        setNewToNestTrail(position);
 
-  useFrame(() => {
+      } else {
+        setNewToFoodTrail(position);
+      }
+    }, 150);
+  }, []);
+
+  useFrame(({ clock }) => {
     if (!pointRef) return;
 
     let newX = pointRef.current.position.x + Math.cos(angleRef.current) * 0.1;
     let newY = pointRef.current.position.y + Math.sin(angleRef.current) * 0.1;
+    const position = pointRef.current?.position;
     if (
       newX + 0.1 >= gridSize / 2 ||
       newX - 0.1 <= -gridSize / 2 ||
@@ -28,9 +39,9 @@ export function Ant({
       // getting outside the grid
       steer(Math.random() * 360);
     } else {
-      const visibleFood = foodSource.filter(
-        (pos) => pointRef.current?.position.distanceTo(pos) < 3
-      ).splice(0, 1);
+      const visibleFood = foodSource
+        .filter((pos) => pointRef.current?.position.distanceTo(pos) < 3)
+        .splice(0, 1);
       // console.log
       if (visibleFood.length > 0 && !isCarringFood.current) {
         const target =
@@ -41,7 +52,6 @@ export function Ant({
                   pointRef.current?.position.distanceTo(a) -
                   pointRef.current?.position.distanceTo(b)
               )[0];
-        const position = pointRef.current?.position;
         // const angleToFood = position?.angleTo(target)
         // console.log(target, position)
         const signedAngleToFood = Math.atan2(
@@ -50,8 +60,9 @@ export function Ant({
         );
         // console.log(signedAngleToFood)
         setAngle(signedAngleToFood);
-        if(position?.distanceTo(target) < 0.1) {
+        if (position?.distanceTo(target) < 0.1) {
           isCarringFood.current = true;
+          angleRef.current += 180 * Math.PI /180
         }
       } else {
         steer((Math.random() - 0.5) * 360 * 0.001);
@@ -70,5 +81,12 @@ export function Ant({
 
   // }
 
-  return <Point position={position} ref={pointRef} size={10} color={isCarringFood.current ? 'yellow' : '#999' }/>;
+  return (
+    <Point
+      position={position}
+      ref={pointRef}
+      size={10}
+      color={isCarringFood.current ? "yellow" : "#999"}
+    />
+  );
 }
