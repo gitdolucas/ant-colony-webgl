@@ -13,15 +13,15 @@ export function Food() {
     <Points limit={10000}>
       <PointMaterial
         transparent
-        color="black"
+        color="green"
         vertexColors
-        size={12}
-        sizeAttenuation={false}
-        depthWrite={false}
+        size={6}
+        sizeAttenuation={true}
+        depthWrite={true}
       />
 
       {foodSource.map((foodPoint) => (
-        <Point position={foodPoint} size={4}/>
+        <Point position={foodPoint}/>
       ))}
     </Points>
   );

@@ -3,23 +3,39 @@ import { useFrame } from "@react-three/fiber";
 import { useRef, useEffect } from "react";
 import { Mesh } from "three";
 import { useSceneStore } from "../store/useSceneStore";
+import { SCENE_CONFIG } from "../scenes/sceneConfig";
 
-export function Ant({ position, gridSize }) {
+export function Ant({ position, gridSize, toNestMatrix, toFoodMatrix }) {
   const foodSource = useSceneStore((state) => state.foodSource);
-  const setNewToFoodTrail = useSceneStore((state) => state.setNewToFoodTrail);
-  const setNewToNestTrail = useSceneStore((state) => state.setNewToNestTrail);
+  // const setNewToFoodTrail = useSceneStore((state) => state.setNewToFoodTrail);
+  // const setNewToNestTrail = useSceneStore((state) => state.setNewToNestTrail);
 
   const isCarringFood = useRef<boolean>(false);
   const pointRef = useRef<Mesh>();
   const angleRef = useRef(Math.random() * 360);
-  useEffect(()=>{
-    setInterval(()=>{
+  useEffect(() => {
+    setInterval(() => {
       const position = pointRef.current?.position;
-      if(isCarringFood.current){
-        setNewToNestTrail(position);
-
+      if (isCarringFood.current) {
+        // setNewToNestTrail(position);
+        //looking for nest (leaves to food trail)
+        toFoodMatrix[
+          Math.floor(position.x) +
+            (SCENE_CONFIG.GRID_SIZE * SCENE_CONFIG.TRAIL_RESOLUTION) / 2
+        ][
+          Math.floor(position.y) +
+            (SCENE_CONFIG.GRID_SIZE * SCENE_CONFIG.TRAIL_RESOLUTION) / 2
+        ] = 10;
       } else {
-        setNewToFoodTrail(position);
+        //looking for food (leaves to nest trail)
+        toNestMatrix[
+          Math.floor(position.x) +
+            (SCENE_CONFIG.GRID_SIZE * SCENE_CONFIG.TRAIL_RESOLUTION) / 2
+        ][
+          Math.floor(position.y) +
+            (SCENE_CONFIG.GRID_SIZE * SCENE_CONFIG.TRAIL_RESOLUTION) / 2
+        ] = 10;
+        // setNewToFoodTrail(position);
       }
     }, 150);
   }, []);
@@ -62,7 +78,7 @@ export function Ant({ position, gridSize }) {
         setAngle(signedAngleToFood);
         if (position?.distanceTo(target) < 0.1) {
           isCarringFood.current = true;
-          angleRef.current += 180 * Math.PI /180
+          angleRef.current += (180 * Math.PI) / 180;
         }
       } else {
         steer((Math.random() - 0.5) * 360 * 0.001);
@@ -85,7 +101,7 @@ export function Ant({ position, gridSize }) {
     <Point
       position={position}
       ref={pointRef}
-      size={10}
+      size={5}
       color={isCarringFood.current ? "yellow" : "#999"}
     />
   );
